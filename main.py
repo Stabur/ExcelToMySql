@@ -1,3 +1,4 @@
+# Создает таблицу в MySql с последующим её заполнением
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QFileDialog
 import MySQLdb

@@ -9,13 +9,21 @@ import openpyxl
 from sshtunnel import SSHTunnelForwarder
 from transliterate import translit, get_available_language_codes
 
-Form, Window = uic.loadUiType("forma.ui")
+Form, Window = uic.loadUiType("forma1.ui")
 
 app = QApplication([])
 window = Window()
 form = Form()
 form.setupUi(window)
 window.show()
+
+ssh_host = []
+ssh_port = []
+
+if (ssh_host and ssh_port):
+    print(ssh_host, ssh_port)
+else:
+    print("Переменные ssh-host и ssh-порт - пусты!")
 
 server = SSHTunnelForwarder(
     ('192.168.1.35', 22),
@@ -29,18 +37,39 @@ if (server):
     print("Соединение c ssh-сервером установленно!")
 else:
     print("Проблема с подключением к ssh-серверу!")
+
 server.start()
 
 def on_click_testbd():
-    global host, login, password, db_name, table_name
+    global host, login, password, db_name, table_name, ssh_host, ssh_port, ssh_login, ssh_pass, ssh_mysql_host, ssh_mysql_port
 
-    host = form.lineEdit.text()
-    login = form.lineEdit_2.text()
-    password = form.lineEdit_3.text()
-    db_name = form.lineEdit_4.text()
+    ssh_host = form.lineEdit.text()
+    ssh_port = form.lineEdit_2.text()
+    ssh_login = form.lineEdit_3.text()
+    ssh_pass = form.lineEdit_4.text()
+    ssh_mysql_host = form.lineEdit_5.text()
+    ssh_mysql_port = form.lineEdit_6.text()
+
+    host = form.lineEdit_7.text()
+    login = form.lineEdit_8.text()
+    password = form.lineEdit_9.text()
+    db_name = form.lineEdit_10.text()
+
     port = server.local_bind_port
 
-    if not host:
+    if not ssh_host:
+        form.label_7.setText("<font color=red>Не заполнено поле Адрес SSH сервера!</font>")
+    elif not ssh_port:
+        form.label_7.setText("<font color=red>Не заполнено поле Порт SSH сервера!</font>")
+    elif not ssh_login:
+        form.label_7.setText("<font color=red>Не заполнено поле Логин SSH сервера!</font>")
+    elif not ssh_pass:
+        form.label_7.setText("<font color=red>Не заполнено поле Пароль SSH сервера!</font>")
+    elif not ssh_mysql_host:
+        form.label_7.setText("<font color=red>Не заполнено поле Адрес MySql сервера!</font>")
+    elif not ssh_mysql_port:
+        form.label_7.setText("<font color=red>Не заполнено поле Порт Mysql сервера!</font>")
+    elif not host:
         form.label_7.setText("<font color=red>Не заполнено поле Хост!</font>")
     elif not login:
         form.label_7.setText("<font color=red>Не заполнено поле Логин!</font>")
@@ -48,6 +77,11 @@ def on_click_testbd():
         form.label_7.setText("<font color=red>Не заполнено поле Пароль!</font>")
     elif not db_name:
         form.label_7.setText("<font color=red>Не заполнено поле База Данных!</font>")
+
+    if (ssh_host and ssh_port and ssh_login and ssh_pass and ssh_mysql_host and ssh_mysql_port):
+        print(ssh_host)
+    else:
+        print("Переменная ssh-host - пуста!")
 
     if (host and login and password and db_name):
         try:

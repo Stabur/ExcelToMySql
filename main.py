@@ -14,7 +14,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 from sbcripto import *
 
-Form, Window = uic.loadUiType("forma1.ui")
+Form, Window = uic.loadUiType("forma.ui")
 
 app = QApplication([])
 window = Window()

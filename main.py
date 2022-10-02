@@ -1,4 +1,5 @@
 # Конвертирует excel-файлы в MySql таблицу с последующим её заполнением.
+# Удобен если необходимо создать/загрузить прайс-лист в базу MySql.
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QFileDialog
 from qtwidgets import PasswordEdit

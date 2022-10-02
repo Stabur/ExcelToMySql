@@ -1,8 +1,8 @@
+# Модуль для хэширования с последующим разделением на равные части и переменой мест этих частей
 import uuid
 import hashlib
 
 def stabur_cripto(password):
-    # Модуль для хэширования с последующим разделением на части и переменой мест этих частей
     password_enc = password.encode('utf-8')
     hash_var = hashlib.sha256(password_enc).hexdigest()
     s1 = hash_var[:len(hash_var) // 2]

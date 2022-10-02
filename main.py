@@ -1,4 +1,4 @@
-# Создает таблицу в MySql с последующим её заполнением
+# Конвертирует excel-файлы в MySql таблицу с последующим её заполнением.
 from PyQt5 import uic, QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QFileDialog
 from qtwidgets import PasswordEdit

@@ -27,21 +27,16 @@ dbconnect = []
 ssh_pass = []
 mysql_password = []
 
-# Форма подключения к SSH серверу
-ssh_pass_c = form.lineEdit_4.setEchoMode(QtWidgets.QLineEdit.Password)
-#print(ssh_pass_c)
-# END - Форма подключения к SSH серверу
+form.lineEdit_4.setEchoMode(QtWidgets.QLineEdit.Password)
 
 def on_click_testssh():
     global server, ssh_host, ssh_port, ssh_login, ssh_pass, ssh_mysql_host, ssh_mysql_port
-    # Форма подключения к SSH серверу
     ssh_host = form.lineEdit.text()
     ssh_port = form.lineEdit_2.text()
     ssh_login = form.lineEdit_3.text()
     ssh_pass = form.lineEdit_4.text()
     ssh_mysql_host = form.lineEdit_5.text()
     ssh_mysql_port = form.lineEdit_6.text()
-    # END - Форма подключения к SSH серверу
 
     if not ssh_host:
         form.label_7.setText("<font color=red>Не заполнено поле Адрес SSH сервера!</font>")
@@ -58,10 +53,10 @@ def on_click_testssh():
 
     new_ssh_pass = str(ssh_pass)
     hash_ssh_pass = stabur_cripto(new_ssh_pass)
-    print('Пароль SSH : ' + new_ssh_pass)
-    print('Кэш SSH : ' + hash_ssh_pass)
-    hash_ssh_pass_len = len(hash_ssh_pass)
-    print('Кол-во символов в Кэше SSH : ' + str(hash_ssh_pass_len))
+    #print('Пароль SSH : ' + new_ssh_pass)
+    #print('Кэш SSH : ' + hash_ssh_pass)
+    #hash_ssh_pass_len = len(hash_ssh_pass)
+    #print('Кол-во символов в Кэше SSH : ' + str(hash_ssh_pass_len))
 
     if (ssh_host and ssh_port and ssh_login and ssh_pass and ssh_mysql_host and ssh_mysql_port):
         try:
@@ -83,20 +78,17 @@ def on_click_testssh():
             form.label_7.setText("<font color=red>Соединение c SSH-сервером НЕ установленно!</font>")
             print(f"""Ошибка: {e}""")
 
-mysql_pass_c = form.lineEdit_9.setEchoMode(QtWidgets.QLineEdit.Password)
-#print(mysql_pass_c)
+form.lineEdit_9.setEchoMode(QtWidgets.QLineEdit.Password)
 
 def on_click_testbd():
     global server, dbconnect, mysql_host, mysql_port, mysql_login, mysql_password, mysql_db_name
 
     if (server):
-        # Форма подключения к MySQL серверу
         mysql_host = form.lineEdit_7.text()
         mysql_login = form.lineEdit_8.text()
         mysql_password = form.lineEdit_9.text()
         mysql_db_name = form.lineEdit_10.text()
         mysql_port = server.local_bind_port
-        # END - Форма подключения к MySQL серверу
 
         if not mysql_host:
             form.label_7.setText("<font color=red>Не заполнено поле Хост MySql!</font>")
@@ -109,10 +101,10 @@ def on_click_testbd():
 
         sql_pass = str(mysql_password)
         hash_sql_pass = stabur_cripto(sql_pass)
-        print('Пароль MySQL : ' + sql_pass)
-        print('Кэш MySQL : ' + hash_sql_pass)
-        hash_sql_pass_len = len(hash_sql_pass)
-        print('Кол-во символов в Кэше MySQL : ' + str(hash_sql_pass_len))
+        #print('Пароль MySQL : ' + sql_pass)
+        #print('Кэш MySQL : ' + hash_sql_pass)
+        #hash_sql_pass_len = len(hash_sql_pass)
+        #print('Кол-во символов в Кэше MySQL : ' + str(hash_sql_pass_len))
 
         if (mysql_host and mysql_login and mysql_password and mysql_db_name):
             try:

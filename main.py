@@ -1,21 +1,19 @@
 # Конвертирует excel-файлы в MySql таблицу с последующим её заполнением.
 # Удобен если необходимо создать/загрузить прайс-лист в базу MySql.
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication, QFileDialog
-from qtwidgets import PasswordEdit
+from PyQt5 import uic, QtWidgets
+from PyQt5.QtWidgets import *
 import MySQLdb
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import os.path
 import pandas as pd
-import openpyxl
 from sshtunnel import SSHTunnelForwarder
-from transliterate import translit, get_available_language_codes
+from transliterate import translit
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 from sbcripto import *
 
-Form, Window = uic.loadUiType("forma.ui")
+Form, Window = uic.loadUiType('forma.ui')
 
 app = QApplication([])
 window = Window()
@@ -67,7 +65,6 @@ def on_click_testssh():
                 ssh_password=ssh_pass,
                 remote_bind_address=(ssh_mysql_host, int(ssh_mysql_port))
             )
-            #print(ssh_host)
             if (server):
                 print(server)
                 print("Соединение c SSH-сервером установленно!")

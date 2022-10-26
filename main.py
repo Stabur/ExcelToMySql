@@ -1,16 +1,14 @@
 # Конвертирует excel-файлы в MySql таблицу с последующим её заполнением.
 # Удобен если необходимо создать/загрузить прайс-лист в базу MySql.
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
+from PyQt5 import uic, QtWidgets
 from PyQt5.QtWidgets import QApplication, QFileDialog
-from qtwidgets import PasswordEdit
 import MySQLdb
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import os.path
 import pandas as pd
-import openpyxl
 from sshtunnel import SSHTunnelForwarder
-from transliterate import translit, get_available_language_codes
+from transliterate import translit
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 from sbcripto import *

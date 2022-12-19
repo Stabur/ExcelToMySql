@@ -1,15 +1,18 @@
 # Конвертирует excel-файлы в MySql таблицу с последующим её заполнением.
 # Удобен если необходимо создать/загрузить прайс-лист в базу MySql.
+import MySQLdb
 from PyQt5 import uic, QtWidgets
 from PyQt5.QtWidgets import QApplication, QFileDialog
-import MySQLdb
+# import MySQLdb
 import os
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import os.path
 import pandas as pd
 from sshtunnel import SSHTunnelForwarder
 from transliterate import translit
 import warnings
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 from sbcripto import *
 
@@ -27,6 +30,7 @@ ssh_pass = []
 mysql_password = []
 
 form.lineEdit_4.setEchoMode(QtWidgets.QLineEdit.Password)
+
 
 def on_click_testssh():
     global server, ssh_host, ssh_port, ssh_login, ssh_pass, ssh_mysql_host, ssh_mysql_port
@@ -52,10 +56,10 @@ def on_click_testssh():
 
     new_ssh_pass = str(ssh_pass)
     hash_ssh_pass = stabur_cripto(new_ssh_pass)
-    #print('Пароль SSH : ' + new_ssh_pass)
-    #print('Кэш SSH : ' + hash_ssh_pass)
-    #hash_ssh_pass_len = len(hash_ssh_pass)
-    #print('Кол-во символов в Кэше SSH : ' + str(hash_ssh_pass_len))
+    # print('Пароль SSH : ' + new_ssh_pass)
+    # print('Кэш SSH : ' + hash_ssh_pass)
+    # hash_ssh_pass_len = len(hash_ssh_pass)
+    # print('Кол-во символов в Кэше SSH : ' + str(hash_ssh_pass_len))
 
     if (ssh_host and ssh_port and ssh_login and ssh_pass and ssh_mysql_host and ssh_mysql_port):
         try:
@@ -65,7 +69,7 @@ def on_click_testssh():
                 ssh_password=ssh_pass,
                 remote_bind_address=(ssh_mysql_host, int(ssh_mysql_port))
             )
-            #print(ssh_host)
+            # print(ssh_host)
             if (server):
                 print(server)
                 print("Соединение c SSH-сервером установленно!")
@@ -77,7 +81,9 @@ def on_click_testssh():
             form.label_7.setText("<font color=red>Соединение c SSH-сервером НЕ установленно!</font>")
             print(f"""Ошибка: {e}""")
 
+
 form.lineEdit_9.setEchoMode(QtWidgets.QLineEdit.Password)
+
 
 def on_click_testbd():
     global server, dbconnect, mysql_host, mysql_port, mysql_login, mysql_password, mysql_db_name
@@ -100,10 +106,10 @@ def on_click_testbd():
 
         sql_pass = str(mysql_password)
         hash_sql_pass = stabur_cripto(sql_pass)
-        #print('Пароль MySQL : ' + sql_pass)
-        #print('Кэш MySQL : ' + hash_sql_pass)
-        #hash_sql_pass_len = len(hash_sql_pass)
-        #print('Кол-во символов в Кэше MySQL : ' + str(hash_sql_pass_len))
+        # print('Пароль MySQL : ' + sql_pass)
+        # print('Кэш MySQL : ' + hash_sql_pass)
+        # hash_sql_pass_len = len(hash_sql_pass)
+        # print('Кол-во символов в Кэше MySQL : ' + str(hash_sql_pass_len))
 
         if (mysql_host and mysql_login and mysql_password and mysql_db_name):
             try:
@@ -118,6 +124,7 @@ def on_click_testbd():
         print("Переменные 'server' или 'dbconnect' не найдены!")
         form.label_7.setText("<font color=red>Нет подключения к SSH серверу!</font>")
 
+
 def on_click_excfile():
     global mysql_table_name, mysql_name_col, mysql_ef2, mysql_name_col_insert
     excelfile = QFileDialog.getOpenFileName(None, 'OpenFile', '', 'Excel file(*.xlsx)')
@@ -131,7 +138,7 @@ def on_click_excfile():
     # print(exPath) # директория файла на ПК
     # print(exFile) # название файла с расширением
     mysql_table_name = os.path.splitext(exFile)[0]
-    #print(mysql_table_name)  # название файла без расширения
+    # print(mysql_table_name)  # название файла без расширения
     form.label_6.setText(f"<font color=green>Файл <font color=blue>{exFile}</font> прикреплён!</font>")
     ef = pd.read_excel(excelfilePath)
     mysql_ef2 = pd.read_excel(excelfilePath, dtype=object)
@@ -158,8 +165,9 @@ def on_click_excfile():
     name_col_insert = name_col_insert.replace(" ", "_")
     name_col_insert = name_col_insert.replace(",", ", ")
     mysql_name_col_insert = name_col_insert.replace(".", "")
-    #print(name_col)
-    #print(name_col_insert)
+    # print(name_col)
+    # print(name_col_insert)
+
 
 def on_click_create():
     global server, mysql_port, dbconnect, mysql_host, mysql_login, mysql_password, mysql_db_name, mysql_table_name, mysql_name_col, mysql_name_col_insert, mysql_ef2
@@ -181,8 +189,10 @@ def on_click_create():
             cur = dbcon.cursor()
             cur2 = dbcon.cursor()
             try:
-                cur.execute(f"""CREATE TABLE IF NOT EXISTS {mysql_table_name} (id INT(12) auto_increment not null primary key, {mysql_name_col})""")
-                form.label_7.setText(f"<font color=green>Таблица <font color=blue>{mysql_table_name}</font> в базе данных создана!!!</font>")
+                cur.execute(
+                    f"""CREATE TABLE IF NOT EXISTS {mysql_table_name} (id INT(12) auto_increment not null primary key, {mysql_name_col})""")
+                form.label_7.setText(
+                    f"<font color=green>Таблица <font color=blue>{mysql_table_name}</font> в базе данных создана!!!</font>")
             except Exception as e:
                 form.label_7.setText("<font color=red>Соединение c MySql-сервером НЕ установленно!</font>")
                 print(f"""Ошибка: {e}""")
@@ -201,9 +211,11 @@ def on_click_create():
         print("Переменные 'server' или 'dbconnect' не найдены!")
         form.label_7.setText("<font color=red>Нет подключения к SSH и/или MySql серверу!</font>")
 
+
 def on_click_windows():
     print("Закрыть Окно")
     quit()
+
 
 form.pushButton.clicked.connect(on_click_windows)
 form.pushButton_2.clicked.connect(on_click_testbd)

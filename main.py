@@ -1,20 +1,21 @@
 # Конвертирует excel-файлы в MySql таблицу с последующим её заполнением.
 # Удобен если необходимо создать/загрузить прайс-лист в базу MySql.
+
 import MySQLdb
 from PyQt5 import uic, QtWidgets
 from PyQt5.QtWidgets import QApplication, QFileDialog
-# import MySQLdb
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import os.path
+import warnings
 import pandas as pd
+# import numpy as np
 from sshtunnel import SSHTunnelForwarder
 from transliterate import translit
-import warnings
+import re
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
-from sbcripto import *
 
 Form, Window = uic.loadUiType("forma.ui")
 
@@ -28,9 +29,9 @@ server = []
 dbconnect = []
 ssh_pass = []
 mysql_password = []
+mysql_rt = []
 
 form.lineEdit_4.setEchoMode(QtWidgets.QLineEdit.Password)
-
 
 def on_click_testssh():
     global server, ssh_host, ssh_port, ssh_login, ssh_pass, ssh_mysql_host, ssh_mysql_port
@@ -53,13 +54,6 @@ def on_click_testssh():
         form.label_7.setText("<font color=red>Не заполнено поле Адрес MySql сервера!</font>")
     elif not ssh_mysql_port:
         form.label_7.setText("<font color=red>Не заполнено поле Порт Mysql сервера!</font>")
-
-    new_ssh_pass = str(ssh_pass)
-    hash_ssh_pass = stabur_cripto(new_ssh_pass)
-    # print('Пароль SSH : ' + new_ssh_pass)
-    # print('Кэш SSH : ' + hash_ssh_pass)
-    # hash_ssh_pass_len = len(hash_ssh_pass)
-    # print('Кол-во символов в Кэше SSH : ' + str(hash_ssh_pass_len))
 
     if (ssh_host and ssh_port and ssh_login and ssh_pass and ssh_mysql_host and ssh_mysql_port):
         try:
@@ -84,7 +78,6 @@ def on_click_testssh():
 
 form.lineEdit_9.setEchoMode(QtWidgets.QLineEdit.Password)
 
-
 def on_click_testbd():
     global server, dbconnect, mysql_host, mysql_port, mysql_login, mysql_password, mysql_db_name
 
@@ -104,17 +97,11 @@ def on_click_testbd():
         elif not mysql_db_name:
             form.label_7.setText("<font color=red>Не заполнено поле База Данных MySql!</font>")
 
-        sql_pass = str(mysql_password)
-        hash_sql_pass = stabur_cripto(sql_pass)
-        # print('Пароль MySQL : ' + sql_pass)
-        # print('Кэш MySQL : ' + hash_sql_pass)
-        # hash_sql_pass_len = len(hash_sql_pass)
-        # print('Кол-во символов в Кэше MySQL : ' + str(hash_sql_pass_len))
-
         if (mysql_host and mysql_login and mysql_password and mysql_db_name):
             try:
                 dbconnect = MySQLdb.connect(mysql_host, mysql_login, mysql_password, mysql_db_name, mysql_port)
                 form.label_7.setText("<font color=green>Соединение c MySql установленно!</font>")
+                print(f"Соединение c MySql установленно!\n порт: {mysql_port}")
                 dbconnect.commit()
                 dbconnect.rollback()
                 dbconnect.close()
@@ -130,44 +117,51 @@ def on_click_excfile():
     excelfile = QFileDialog.getOpenFileName(None, 'OpenFile', '', 'Excel file(*.xlsx)')
     excelfilePath = excelfile[0]
     # print(excelfilePath) # полный путь к файлу на ПК
-    exPath = os.path.dirname(excelfilePath)
-    exFile = os.path.basename(excelfilePath)
-    exFile = translit(exFile, reversed=True)
-    exFile = exFile.replace(" ", "_")
-    exFile = exFile.replace("'", "")
-    # print(exPath) # директория файла на ПК
-    # print(exFile) # название файла с расширением
-    mysql_table_name = os.path.splitext(exFile)[0]
-    # print(mysql_table_name)  # название файла без расширения
+    exPath = os.path.dirname(excelfilePath) # директория файла на ПК
+    exFile = os.path.basename(excelfilePath) # Название файла как есть
+    # print(f"Название файла как есть : {exFile}")
+    table_name = os.path.splitext(exFile)[0]  # Убераем расширение
+    # print(f"Название файла без расширения : {table_name}")
+
+    table_nameEng = translit(table_name, reversed=True) # Транслит, если имя файла на русском
+
+    mysql_table_name = re.sub("[^0-9,A-Za-z]", "", table_nameEng) # Оставляем в названии только буквы, цифры и подчеркивание
+
+    print(f"Переменная mysql_table_name =  {mysql_table_name}") # Название файла - переформатированное под создание имени таблицы.
     form.label_6.setText(f"<font color=green>Файл <font color=blue>{exFile}</font> прикреплён!</font>")
+
     ef = pd.read_excel(excelfilePath)
-    mysql_ef2 = pd.read_excel(excelfilePath, dtype=object)
-    # tosql = ef.head()
-    # tosql.index = tosql.index + 1  # Содержимое файла с разбитием на нумерацию с 1-го
-    # print(tosql.index)
+    # print(f"Весь док : {ef}")
+    mysql_ef2 = pd.read_excel(excelfilePath, dtype=object) # Извлекаем содержимое файлa
+
     strhead = ef.columns.ravel()  # Массив, заголовки столбцов
-    # print(strhead)
+    print(f"Чистый strhead : {strhead}")
+    # my_array = np.array(strhead)
+    #strhead = strhead.list(', ')
+    strhead = [x.replace(",", "") for x in strhead] # Убираем запятые из элементов массива
+    strhead = [x.strip(' ') for x in strhead]  # Удаляем пробелы вначале и в конце элементов массива
+    print(f"Без запятой strhead : {strhead}")
+
     # num_strhead = len(strhead) # Кол-во элементов в массиве
-    i = (",".join(strhead))
-    strhead_en = translit(i, reversed=True)  # Транслит (если вдруг русские названия) заголовков столбцов
-    # print(strhead_en)
-    strhead_en = strhead_en.replace(" ", "_")
-    strhead_en = strhead_en.replace(",", ", ")
-    strhead_en = strhead_en.replace(".", "")
+    # print(num_strhead)
 
-    strhead_en_arr = strhead_en.split(', ')  # Добавляем элементы в массив и разделяем их запятыми
-    # print(strhead_en_arr)
-    name_col = [i + ' VARCHAR(255)  not null' for i in strhead_en_arr]
-    mysql_name_col = (', '.join(map(str, name_col)))
+    strhead_str = (", ".join(strhead)) # формируем список из массива
 
-    name_col_insert = [i for i in strhead_en_arr]
-    name_col_insert = (','.join(map(str, name_col_insert)))
-    name_col_insert = name_col_insert.replace(" ", "_")
-    name_col_insert = name_col_insert.replace(",", ", ")
-    mysql_name_col_insert = name_col_insert.replace(".", "")
-    # print(name_col)
-    # print(name_col_insert)
+    strhead_str = re.sub('[^а-яА-Я,ёЁ,йЙ,0-9a-zA-Z,_]', '', strhead_str) # Убераем все спец.символы, оставляем лишь буквы и цифры
+    print(f"Список заголовки столбцов переменная strhead (рус) = {strhead_str}")
 
+    strhead_en = translit(strhead_str, reversed=True)  # Транслит (если вдруг русские названия) заголовков столбцов
+    print(f"Список заголовки столбцов переменная strhead (eng) = {strhead_en}")
+
+    strhead_en_arr = strhead_en.split(',')  # Формируем новый массив
+    print(f"Массив заголовки столбцов переменная strhead_en_arr : {strhead_en_arr}")
+    name_col = [i + ' TEXT not null' for i in strhead_en_arr] # Добавляем ' TEXT not null' к каждому элементу массива
+    print(f"Массив заголовки столбцов c добавлением ' TEXT not null' переменная name_col : {name_col}")
+    mysql_name_col = (', '.join(name_col)) # Формируем список для sql create table
+    print(f"массив заголовки столбцов переменная mysql_name_col : {mysql_name_col}")
+
+    mysql_name_col_insert = strhead_en # Cписок для sql insert
+    print(f"переменная наименование колонок mysql_name_col_insert = {mysql_name_col_insert}")
 
 def on_click_create():
     global server, mysql_port, dbconnect, mysql_host, mysql_login, mysql_password, mysql_db_name, mysql_table_name, mysql_name_col, mysql_name_col_insert, mysql_ef2
@@ -189,10 +183,8 @@ def on_click_create():
             cur = dbcon.cursor()
             cur2 = dbcon.cursor()
             try:
-                cur.execute(
-                    f"""CREATE TABLE IF NOT EXISTS {mysql_table_name} (id INT(12) auto_increment not null primary key, {mysql_name_col})""")
-                form.label_7.setText(
-                    f"<font color=green>Таблица <font color=blue>{mysql_table_name}</font> в базе данных создана!!!</font>")
+                cur.execute(f"""CREATE TABLE IF NOT EXISTS {mysql_table_name} (id INT(12) auto_increment not null primary key, {mysql_name_col})""")
+                form.label_7.setText(f"<font color=green>Таблица <font color=blue>{mysql_table_name}</font> в базе данных создана!!!</font>")
             except Exception as e:
                 form.label_7.setText("<font color=red>Соединение c MySql-сервером НЕ установленно!</font>")
                 print(f"""Ошибка: {e}""")
@@ -200,7 +192,6 @@ def on_click_create():
 
             for body in range(len(mysql_ef2)):
                 mysql_rt = tuple(mysql_ef2.iloc[body].to_list())
-                print(mysql_rt)
                 cur2.execute(f"""INSERT INTO {mysql_table_name} ({mysql_name_col_insert}) VALUES {mysql_rt}""")
 
             dbcon.commit()

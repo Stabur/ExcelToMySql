@@ -116,12 +116,9 @@ def on_click_excfile():
     global mysql_table_name, mysql_name_col, mysql_ef2, mysql_name_col_insert
     excelfile = QFileDialog.getOpenFileName(None, 'OpenFile', '', 'Excel file(*.xlsx)')
     excelfilePath = excelfile[0]
-    # print(excelfilePath) # полный путь к файлу на ПК
     exPath = os.path.dirname(excelfilePath) # директория файла на ПК
     exFile = os.path.basename(excelfilePath) # Название файла как есть
-    # print(f"Название файла как есть : {exFile}")
     table_name = os.path.splitext(exFile)[0]  # Убераем расширение
-    # print(f"Название файла без расширения : {table_name}")
 
     table_nameEng = translit(table_name, reversed=True) # Транслит, если имя файла на русском
 
@@ -131,37 +128,31 @@ def on_click_excfile():
     form.label_6.setText(f"<font color=green>Файл <font color=blue>{exFile}</font> прикреплён!</font>")
 
     ef = pd.read_excel(excelfilePath)
-    # print(f"Весь док : {ef}")
+
     mysql_ef2 = pd.read_excel(excelfilePath, dtype=object) # Извлекаем содержимое файлa
 
     strhead = ef.columns.ravel()  # Массив, заголовки столбцов
-    print(f"Чистый strhead : {strhead}")
-    # my_array = np.array(strhead)
-    #strhead = strhead.list(', ')
+
     strhead = [x.replace(",", "") for x in strhead] # Убираем запятые из элементов массива
     strhead = [x.strip(' ') for x in strhead]  # Удаляем пробелы вначале и в конце элементов массива
-    print(f"Без запятой strhead : {strhead}")
-
-    # num_strhead = len(strhead) # Кол-во элементов в массиве
-    # print(num_strhead)
 
     strhead_str = (", ".join(strhead)) # формируем список из массива
 
     strhead_str = re.sub('[^а-яА-Я,ёЁ,йЙ,0-9a-zA-Z,_]', '', strhead_str) # Убераем все спец.символы, оставляем лишь буквы и цифры
-    print(f"Список заголовки столбцов переменная strhead (рус) = {strhead_str}")
+    # print(f"Список заголовки столбцов переменная strhead (рус) = {strhead_str}")
 
     strhead_en = translit(strhead_str, reversed=True)  # Транслит (если вдруг русские названия) заголовков столбцов
-    print(f"Список заголовки столбцов переменная strhead (eng) = {strhead_en}")
+    # print(f"Список заголовки столбцов переменная strhead (eng) = {strhead_en}")
 
     strhead_en_arr = strhead_en.split(',')  # Формируем новый массив
-    print(f"Массив заголовки столбцов переменная strhead_en_arr : {strhead_en_arr}")
+    # print(f"Массив заголовки столбцов переменная strhead_en_arr : {strhead_en_arr}")
     name_col = [i + ' TEXT not null' for i in strhead_en_arr] # Добавляем ' TEXT not null' к каждому элементу массива
-    print(f"Массив заголовки столбцов c добавлением ' TEXT not null' переменная name_col : {name_col}")
+    # print(f"Массив заголовки столбцов c добавлением ' TEXT not null' переменная name_col : {name_col}")
     mysql_name_col = (', '.join(name_col)) # Формируем список для sql create table
-    print(f"массив заголовки столбцов переменная mysql_name_col : {mysql_name_col}")
+    # print(f"список заголовки столбцов переменная mysql_name_col : {mysql_name_col}")
 
     mysql_name_col_insert = strhead_en # Cписок для sql insert
-    print(f"переменная наименование колонок mysql_name_col_insert = {mysql_name_col_insert}")
+    # print(f"переменная наименование колонок mysql_name_col_insert = {mysql_name_col_insert}")
 
 def on_click_create():
     global server, mysql_port, dbconnect, mysql_host, mysql_login, mysql_password, mysql_db_name, mysql_table_name, mysql_name_col, mysql_name_col_insert, mysql_ef2

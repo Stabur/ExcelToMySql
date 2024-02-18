@@ -1,5 +1,9 @@
-# Конвертирует excel-файлы в MySql таблицу с последующим её заполнением.
-# Удобен если необходимо создать/загрузить прайс-лист в базу MySql.
+"""
+   Автор: StaBur
+   Дата: 19.12.2022; 6:05 GMT-3;
+   Конвертирует excel-файл (прайс-лист или перечень товара с описанием) в MySql таблицу.
+   Удобен если необходимо создать/загрузить прайс-лист||перечень товара  с большим объемом данных в базу MySql.
+"""
 
 import MySQLdb
 from PyQt5 import uic, QtWidgets
@@ -12,8 +16,8 @@ import warnings
 import pandas as pd
 import numpy as np
 from sshtunnel import SSHTunnelForwarder
-from transliterate import translit
 import re
+from translit import transliterate
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -62,7 +66,6 @@ def on_click_testssh():
                 ssh_password=ssh_pass,
                 remote_bind_address=(ssh_mysql_host, int(ssh_mysql_port))
             )
-            # print(ssh_host)
             if (server):
                 print(server)
                 print("Соединение c SSH-сервером установленно!")
@@ -118,10 +121,10 @@ def on_click_excfile():
     exFile = os.path.basename(excelfilePath) # Название файла как есть
     table_name = os.path.splitext(exFile)[0]  # Убераем расширение
 
-    table_nameEng = translit(table_name, reversed=True) # Транслит, если имя файла на русском
+    table_nameEng = transliterate(table_name) # Транслит, если имя файла на русском
 
     mysql_table_name = re.sub("[^0-9,A-Za-z]", "", table_nameEng) # Оставляем в названии только буквы и цифры
-
+    print(f"Название таблицы в MySql : {mysql_table_name}")
     form.label_6.setText(f"<font color=green>Файл <font color=blue>{exFile}</font> прикреплён!</font>")
 
     ef = pd.read_excel(excelfilePath) # Считываем загруженный файл
@@ -132,23 +135,25 @@ def on_click_excfile():
 
     strhead_str = (", ".join(strhead)) # формируем список из массива
 
-    strhead_str = re.sub('[^а-яА-Я,ёЁ,йЙ,0-9a-zA-Z]', '', strhead_str) # Убераем все спец.символы, оставляем лишь буквы и цифры
+    strhead_str = re.sub('[^а-яА-Я,ёЁ,йЙ,0-9a-zA-Z,#,№]', '', strhead_str) # Убераем все спец.символы, оставляем лишь буквы и цифры
 
-    strhead_en = translit(strhead_str, reversed=True)  # Транслит (если вдруг русские названия) заголовков столбцов
+    strhead_en = transliterate(strhead_str)  # Транслит (если вдруг русские названия) заголовков столбцов
 
     strhead_en_arr = strhead_en.split(',')  # Разделяем строку
+    print(f"Наименование колонок для таблицы {mysql_table_name} : {strhead_en_arr}")
     name_col = [i + ' TEXT not null' for i in strhead_en_arr] # Добавляем ' TEXT not null' к каждому элементу
+    
     mysql_name_col = (', '.join(name_col)) # Формируем список для sql create table
-
+    print(f"Для Create таблицы {mysql_table_name} : {mysql_name_col}")
     mysql_name_col_insert = strhead_en # Cписок для sql insert
-
-    # Создаем массив mysql_ef2 из содержимого таблицы, с последующей передачей его в def on_click_create
+    print(f"Для Insert таблицы {mysql_table_name} : {mysql_name_col_insert}")
+    # Создаем массив mysql_ef2 из содержимого таблицы, с последующей  передачей его в def on_click_create
     mysql_ef2 = pd.read_excel(excelfilePath)  # Извлекаем содержимое файлa
     mysql_ef2 = mysql_ef2.astype(object).replace(np.nan, 'None') # Пустые ячейки помечаем как None
 
 def on_click_create():
     global server, mysql_port, dbconnect, mysql_host, mysql_login, mysql_password, mysql_db_name, mysql_table_name, mysql_name_col, mysql_name_col_insert, mysql_ef2
-
+    
     if (server and dbconnect):
         if not mysql_host:
             form.label_7.setText("<font color=red>Не заполнено поле Хост MySql!</font>")
@@ -165,6 +170,7 @@ def on_click_create():
             dbcon = MySQLdb.connect(mysql_host, mysql_login, mysql_password, mysql_db_name, mysql_port)
             cur = dbcon.cursor()
             cur2 = dbcon.cursor()
+            
             try:
                 cur.execute(f"""CREATE TABLE IF NOT EXISTS {mysql_table_name} (id INT(12) auto_increment not null primary key, {mysql_name_col})""")
                 form.label_7.setText(f"<font color=green>Таблица <font color=blue>{mysql_table_name}</font> в базе данных создана!!!</font>")
@@ -178,7 +184,7 @@ def on_click_create():
                 mysql_rt = tuple(mysql_ef2.iloc[body].to_list())
                 try:
                     cur2.execute(f"""INSERT INTO {mysql_table_name} ({mysql_name_col_insert}) VALUES {mysql_rt}""")
-                    print(f"Содержание таблицы {mysql_table_name} добавленно")
+                    print(f"{body+1}-я строка таблицы {mysql_table_name} добавленна")
                 except:
                     form.label_7.setText(f"<font color=red>Содержание таблицы {mysql_table_name} не добавленно!</font></font>")
             dbcon.commit()

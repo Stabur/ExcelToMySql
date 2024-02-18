@@ -22,6 +22,8 @@ re
  pip install re 
 Openpyxl
  pip install openpyxl
+PyArrow
+ pip install PyArrow
 
 Сервером служил домашний компьютер с Linux Debian 12, Apache/2.4.57, mysql Ver 15.1 Distrib 10.11.4-MariaDB, OpenSSH_9.2p1 Debian-2+deb12u2, OpenSSL 3.0.11 19 Sep 2023
 

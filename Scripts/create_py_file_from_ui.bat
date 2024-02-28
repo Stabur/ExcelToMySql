@@ -1,1 +1,0 @@
-pyuic5.exe -x C:\Users\Home\AppData\Local\Programs\Python\Python310\ExcelMySql\forma.ui -o C:\Users\Home\AppData\Local\Programs\Python\Python310\ExcelMySql\forma.py 
